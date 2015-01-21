@@ -103,9 +103,8 @@ set_freq () {
 	# From the string FREQ_LIST, we choose the item at index CURRENT_FREQ.
 	FREQ_TO_SET=$(echo $FREQ_LIST | cut -d " " -f $CURRENT_FREQ)
 	echo $FREQ_TO_SET
-	for i in $(seq 0 $CORES); do
-		echo $FREQ_TO_SET > /sys/devices/system/cpu/cpu$i/cpufreq/scaling_max_freq
-	done
+	cpupower frequency-set -g userspace
+	cpupower frequency-set -f $FREQ_TO_SET
 }
 
 # Will reduce the frequency of cpus if possible.
@@ -122,13 +121,12 @@ unthrottle () {
 	if [ $CURRENT_FREQ -ne 1 ]; then
 		CURRENT_FREQ=$((CURRENT_FREQ - 1))
 		echo -n "unthrottle "
-		set_freq $CURRENT_FREQ
+		cpupower frequency-set -g ondemand
 	fi
 }
 
 get_temp () {
 	# Get the system temperature.
-	
 	TEMP=$(cat $TEMP_FILE)
 }
 
