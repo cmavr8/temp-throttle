@@ -134,12 +134,19 @@ get_temp () {
 
 
 # Mainloop
+TIME_TO_ACT=1 # Is it time to act on the high temperature? This variable is a countdown. Its role is to delay the excessive use of throttling, and gives the CPU some time to cool. If more throttling is needed it will eventually be done.
 while true; do
 	get_temp # Gets the current tempurature and set it to the variable TEMP.
-	if   [ $TEMP -gt $MAX_TEMP ]; then # Throttle if too hot.
-		throttle
+	if   [ $TEMP -gt $MAX_TEMP ]; then # Prepare to throttle if too hot.
+		let "TIME_TO_ACT -= 1" # Subtract one from the variable, bringing it closer to 0
 	elif [ $TEMP -le $LOW_TEMP ]; then # Unthrottle if cool.
 		unthrottle
 	fi
+
+	if   [ $TIME_TO_ACT -eq 0 ]; then # When time to act reaches 0, throttle!
+		throttle
+		TIME_TO_ACT=5 # Reset TIME_TO_ACT, to delay next throttling
+	fi
+
 	sleep 3 # The amount of time between checking tempuratures.
 done
